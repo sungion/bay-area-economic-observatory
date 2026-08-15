@@ -3,7 +3,8 @@ import pandas as pd
 
 from utils.census import (
     get_income_data,
-    get_commute_data
+    get_commute_data,
+    get_transportation_mode_data
 )
 
 from analysis.correlations import (
@@ -676,3 +677,92 @@ st.info(
     "publicly available data. Data definitions and methodologies are "
     "documented to improve transparency and reproducibility."
 )
+
+# =========================
+# TRANSPORTATION MODE
+# =========================
+
+st.divider()
+
+st.header("🚗 How Bay Area Workers Commute")
+
+st.write(
+    """
+    This section examines how workers in each Bay Area county
+    travel to work, including driving alone, carpooling,
+    public transportation, and working from home.
+    """
+)
+
+try:
+
+    mode_df = get_transportation_mode_data()
+
+    st.subheader("Transportation Mode by County")
+
+    selected_mode_county = st.selectbox(
+        "Select a county:",
+        mode_df["County"].tolist(),
+        key="transportation_mode_county"
+    )
+
+    selected_mode = mode_df[
+        mode_df["County"] == selected_mode_county
+    ].set_index("County")
+
+    st.bar_chart(
+        selected_mode[
+            [
+                "Drive Alone (%)",
+                "Carpooled (%)",
+                "Public Transportation (%)",
+                "Worked at Home (%)"
+            ]
+        ].T
+    )
+
+    st.subheader(
+        f"Transportation Patterns — {selected_mode_county}"
+    )
+
+    col1, col2, col3, col4 = st.columns(4)
+
+    row = mode_df[
+        mode_df["County"] == selected_mode_county
+    ].iloc[0]
+
+    with col1:
+        st.metric(
+            "🚗 Drive Alone",
+            f"{row['Drive Alone (%)']:.1f}%"
+        )
+
+    with col2:
+        st.metric(
+            "🚙 Carpooled",
+            f"{row['Carpooled (%)']:.1f}%"
+        )
+
+    with col3:
+        st.metric(
+            "🚇 Public Transit",
+            f"{row['Public Transportation (%)']:.1f}%"
+        )
+
+    with col4:
+        st.metric(
+            "🏠 Worked at Home",
+            f"{row['Worked at Home (%)']:.1f}%"
+        )
+
+    st.caption(
+        "Source: U.S. Census Bureau, 2024 American Community Survey "
+        "(ACS 5-Year Estimates), Table B08301. Percentages are "
+        "calculated from reported worker counts."
+    )
+
+except Exception:
+
+    st.error(
+        "Transportation mode data could not be loaded."
+    )
