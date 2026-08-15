@@ -110,7 +110,8 @@ comparison_year = st.selectbox(
     ["2019", "2020", "2021", "2022", "2023", "2024", "2025"]
 )
 
-latest_row = bart_df["2026"].last_valid_index() latest_month = bart_df.loc[latest_row, "Month"]
+latest_row = bart_df["2026"].last_valid_index()
+latest_month = bart_df.loc[latest_row, "Month"]
 
 latest = bart_df.loc[latest_month, "2026"]
 comparison = bart_df.loc[latest_month, comparison_year]
