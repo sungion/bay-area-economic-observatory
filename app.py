@@ -28,7 +28,7 @@ with col2:
     st.metric("Focus", "Transportation")
 
 with col3:
-    st.metric("Data Coverage", "2019–Present")
+    st.metric("Data Coverage", "2019–2026")
 
 
 # =========================
@@ -462,4 +462,93 @@ except Exception as e:
         "The Census data could not be loaded. "
         "Check that your Census API key is configured correctly "
         "in Streamlit Secrets."
+    )
+# =========================
+# COMMUTING PATTERNS
+# =========================
+
+st.divider()
+
+st.header("🚗 Commuting Patterns")
+
+st.write(
+    """
+    Commute time provides context for transportation demand and
+    regional differences across the Bay Area.
+    """
+)
+
+# Census ACS variable:
+# B08303_001E = Total workers 16 years and over
+# B08303_013E = Mean travel time to work (minutes)
+
+commute_url = (
+    "https://api.census.gov/data/2024/acs/acs5"
+    "?get=NAME,B08303_013E"
+    "&for=county:*"
+    "&in=state:06"
+    f"&key={census_key}"
+)
+
+try:
+    commute_response = pd.read_json(commute_url)
+
+    commute_response.columns = commute_response.iloc[0]
+    commute_response = commute_response.iloc[1:].reset_index(drop=True)
+
+    commute_df = commute_response[
+        commute_response["county"].isin(counties.values())
+    ].copy()
+
+    commute_df["County"] = commute_df["county"].map(
+        fips_to_county
+    )
+
+    commute_df["Mean Commute Time"] = pd.to_numeric(
+        commute_df["B08303_013E"],
+        errors="coerce"
+    )
+
+    commute_df = commute_df.sort_values("County")
+
+    # -------------------------
+    # Chart
+    # -------------------------
+
+    st.subheader("Average Commute Time by County")
+
+    commute_chart = commute_df.set_index("County")[
+        ["Mean Commute Time"]
+    ]
+
+    st.bar_chart(commute_chart)
+
+    # -------------------------
+    # County selector
+    # -------------------------
+
+    selected_commute_county = st.selectbox(
+        "Select a county:",
+        commute_df["County"].tolist(),
+        key="commute_county"
+    )
+
+    selected_commute = commute_df.loc[
+        commute_df["County"] == selected_commute_county,
+        "Mean Commute Time"
+    ].iloc[0]
+
+    st.metric(
+        f"{selected_commute_county} County Mean Commute",
+        f"{selected_commute:.1f} minutes"
+    )
+
+    st.caption(
+        "Source: U.S. Census Bureau, 2024 American Community Survey "
+        "(ACS 5-Year Estimates), Table B08303."
+    )
+
+except Exception:
+    st.error(
+        "The Census commute data could not be loaded."
     )
