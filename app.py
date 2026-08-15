@@ -473,18 +473,17 @@ st.header("🚗 Commuting Patterns")
 
 st.write(
     """
-    Commute time provides context for transportation demand and
-    regional differences across the Bay Area.
+    Mean travel time to work provides context for transportation
+    demand and regional differences across the Bay Area.
     """
 )
 
-# Census ACS variable:
-# B08303_001E = Total workers 16 years and over
-# B08303_013E = Mean travel time to work (minutes)
+# Census DP03:
+# DP03_0025E = Mean travel time to work (minutes)
 
 commute_url = (
-    "https://api.census.gov/data/2024/acs/acs5"
-    "?get=NAME,B08303_013E"
+    "https://api.census.gov/data/2024/acs/acs5/profile"
+    "?get=NAME,DP03_0025E"
     "&for=county:*"
     "&in=state:06"
     f"&key={census_key}"
@@ -505,15 +504,11 @@ try:
     )
 
     commute_df["Mean Commute Time"] = pd.to_numeric(
-        commute_df["B08303_013E"],
+        commute_df["DP03_0025E"],
         errors="coerce"
     )
 
     commute_df = commute_df.sort_values("County")
-
-    # -------------------------
-    # Chart
-    # -------------------------
 
     st.subheader("Average Commute Time by County")
 
@@ -522,10 +517,6 @@ try:
     ]
 
     st.bar_chart(commute_chart)
-
-    # -------------------------
-    # County selector
-    # -------------------------
 
     selected_commute_county = st.selectbox(
         "Select a county:",
@@ -545,10 +536,10 @@ try:
 
     st.caption(
         "Source: U.S. Census Bureau, 2024 American Community Survey "
-        "(ACS 5-Year Estimates), Table B08303."
+        "(ACS 5-Year Estimates), Data Profile DP03."
     )
 
-except Exception:
+except Exception as e:
     st.error(
         "The Census commute data could not be loaded."
     )
