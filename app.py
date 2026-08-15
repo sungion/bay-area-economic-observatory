@@ -281,10 +281,11 @@ st.write(
     """
 )
 
-comparison_year = st.selectbox(
-    "Choose a comparison year:",
+recovery_year = st.selectbox(
+    "Choose a recovery comparison year:",
     ["2019", "2020", "2021", "2022", "2023", "2024", "2025"],
-    index=0
+    index=0,
+    key="recovery_year"
 )
 
 # 2026 data currently extends through June
@@ -297,7 +298,7 @@ bart_2026 = bart_df.loc[
 ].iloc[0]
 
 bart_comparison = bart_df.loc[
-    bart_df["Month"] == latest_month, comparison_year
+    bart_df["Month"] == latest_month, recovery_year
 ].iloc[0]
 
 # Get Bay Bridge values
@@ -306,7 +307,7 @@ bridge_2026 = bridge_df.loc[
 ].iloc[0]
 
 bridge_comparison = bridge_df.loc[
-    bridge_df["Month"] == latest_month, comparison_year
+    bridge_df["Month"] == latest_month, recovery_year
 ].iloc[0]
 
 # Calculate recovery percentages
@@ -323,24 +324,24 @@ with col1:
     st.metric(
         "🚇 BART Recovery",
         f"{bart_recovery:.1f}%",
-        f"{bart_change:+.1f}% vs. {comparison_year}"
+        f"{bart_change:+.1f}% vs. {recovery_year}"
     )
 
 with col2:
     st.metric(
         "🚗 Bay Bridge Recovery",
         f"{bridge_recovery:.1f}%",
-        f"{bridge_change:+.1f}% vs. {comparison_year}"
+        f"{bridge_change:+.1f}% vs. {recovery_year}"
     )
 
 st.write(
     f"""
     In **{latest_month} 2026**, BART average weekday station exits
-    were **{bart_recovery:.1f}%** of the {comparison_year}
+    were **{bart_recovery:.1f}%** of the {recovery_year}
     level for the same month.
 
     Bay Bridge traffic was **{bridge_recovery:.1f}%** of its
-    {comparison_year} level for the same month.
+    {recovery_year} level for the same month.
     """
 )
 
