@@ -1,6 +1,16 @@
 import streamlit as st
 import pandas as pd
 
+from utils.census import (
+    get_income_data,
+    get_commute_data
+)
+
+from analysis.correlations import (
+    calculate_correlation,
+    merge_income_and_commute
+)
+
 st.set_page_config(
     page_title="Bay Area Economic Observatory",
     page_icon="📊",
@@ -362,75 +372,49 @@ st.write(
     """
     Median household income provides economic context for
     transportation patterns across the Bay Area's nine counties.
-    Data is retrieved directly from the U.S. Census Bureau's
+    Data is retrieved from the U.S. Census Bureau's
     American Community Survey.
     """
 )
 
-# 9-county Bay Area FIPS codes
-counties = {
-    "Alameda": "001",
-    "Contra Costa": "013",
-    "Marin": "041",
-    "Napa": "055",
-    "San Francisco": "075",
-    "San Mateo": "081",
-    "Santa Clara": "085",
-    "Solano": "095",
-    "Sonoma": "097"
-}
-
-# Census API key stored securely in Streamlit Secrets
-census_key = st.secrets["CENSUS_API_KEY"]
-
-# Census API URL
-url = (
-    "https://api.census.gov/data/2024/acs/acs5"
-    "?get=NAME,B19013_001E"
-    "&for=county:*"
-    "&in=state:06"
-    f"&key={census_key}"
-)
-
 try:
-    census_response = pd.read_json(url)
 
-    # First row contains column names
-    census_response.columns = census_response.iloc[0]
-    census_response = census_response.iloc[1:].reset_index(drop=True)
-
-    # Keep only the nine Bay Area counties
-    income_df = census_response[
-        census_response["county"].isin(counties.values())
-    ].copy()
-
-    # Map FIPS codes to county names
-    fips_to_county = {
-        value: key for key, value in counties.items()
-    }
-
-    income_df["County"] = income_df["county"].map(fips_to_county)
-
-    # Convert income to numbers
-    income_df["Median Household Income"] = pd.to_numeric(
-        income_df["B19013_001E"],
-        errors="coerce"
-    )
-
-    # Sort alphabetically
-    income_df = income_df.sort_values("County")
-
-    # -------------------------
-    # Chart
-    # -------------------------
+    income_df = get_income_data()
 
     st.subheader("Median Household Income by County")
 
-    chart_data = income_df.set_index("County")[
-        ["Median Household Income"]
-    ]
+    st.bar_chart(
+        income_df.set_index("County")[
+            ["Median Household Income"]
+        ]
+    )
 
-    st.bar_chart(chart_data)
+    selected_county = st.selectbox(
+        "Select a county:",
+        income_df["County"].tolist(),
+        key="income_county"
+    )
+
+    selected_income = income_df.loc[
+        income_df["County"] == selected_county,
+        "Median Household Income"
+    ].iloc[0]
+
+    st.metric(
+        f"{selected_county} County Median Household Income",
+        f"${selected_income:,.0f}"
+    )
+
+    st.caption(
+        "Source: U.S. Census Bureau, 2024 American Community Survey "
+        "(ACS 5-Year Estimates), Table B19013."
+    )
+
+except Exception:
+
+    st.error(
+        "The Census income data could not be loaded."
+    )
 
     # -------------------------
     # County selector
@@ -478,45 +462,17 @@ st.write(
     """
 )
 
-# Census DP03:
-# DP03_0025E = Mean travel time to work (minutes)
-
-commute_url = (
-    "https://api.census.gov/data/2024/acs/acs5/profile"
-    "?get=NAME,DP03_0025E"
-    "&for=county:*"
-    "&in=state:06"
-    f"&key={census_key}"
-)
-
 try:
-    commute_response = pd.read_json(commute_url)
 
-    commute_response.columns = commute_response.iloc[0]
-    commute_response = commute_response.iloc[1:].reset_index(drop=True)
-
-    commute_df = commute_response[
-        commute_response["county"].isin(counties.values())
-    ].copy()
-
-    commute_df["County"] = commute_df["county"].map(
-        fips_to_county
-    )
-
-    commute_df["Mean Commute Time"] = pd.to_numeric(
-        commute_df["DP03_0025E"],
-        errors="coerce"
-    )
-
-    commute_df = commute_df.sort_values("County")
+    commute_df = get_commute_data()
 
     st.subheader("Average Commute Time by County")
 
-    commute_chart = commute_df.set_index("County")[
-        ["Mean Commute Time"]
-    ]
-
-    st.bar_chart(commute_chart)
+    st.bar_chart(
+        commute_df.set_index("County")[
+            ["Mean Commute Time"]
+        ]
+    )
 
     selected_commute_county = st.selectbox(
         "Select a county:",
@@ -539,7 +495,8 @@ try:
         "(ACS 5-Year Estimates), Data Profile DP03."
     )
 
-except Exception as e:
+except Exception:
+
     st.error(
         "The Census commute data could not be loaded."
     )
@@ -554,48 +511,55 @@ st.header("📈 Income vs. Commute Time")
 
 st.write(
     """
-    This analysis examines whether median household income is associated
-    with average commute time across the nine Bay Area counties.
-    Each point represents one county.
+    This analysis examines whether median household income is
+    associated with average commute time across the nine
+    Bay Area counties.
     """
 )
 
-# Merge income and commute datasets
-analysis_df = pd.merge(
-    income_df[["County", "Median Household Income"]],
-    commute_df[["County", "Mean Commute Time"]],
-    on="County"
-)
+try:
 
-st.subheader("County-Level Relationship")
+    analysis_df = merge_income_and_commute(
+        income_df,
+        commute_df
+    )
 
-st.scatter_chart(
-    analysis_df,
-    x="Median Household Income",
-    y="Mean Commute Time"
-)
+    st.subheader("County-Level Relationship")
 
-# Calculate correlation
-correlation = analysis_df[
-    ["Median Household Income", "Mean Commute Time"]
-].corr().iloc[0, 1]
+    st.scatter_chart(
+        analysis_df,
+        x="Median Household Income",
+        y="Mean Commute Time"
+    )
 
-st.metric(
-    "Income–Commute Correlation",
-    f"{correlation:.2f}"
-)
+    correlation = calculate_correlation(
+        analysis_df,
+        "Median Household Income",
+        "Mean Commute Time"
+    )
 
-st.caption(
-    "Correlation measures the linear association between median household "
-    "income and mean commute time across the nine Bay Area counties. "
-    "Correlation does not imply causation."
-)
+    st.metric(
+        "Income–Commute Correlation",
+        f"{correlation:.2f}"
+    )
 
-st.dataframe(
-    analysis_df,
-    use_container_width=True,
-    hide_index=True
-)
+    st.caption(
+        "Pearson correlation measures the linear association between "
+        "median household income and mean commute time across the "
+        "nine Bay Area counties. Correlation does not imply causation."
+    )
+
+    st.dataframe(
+        analysis_df,
+        use_container_width=True,
+        hide_index=True
+    )
+
+except Exception:
+
+    st.error(
+        "The income and commute analysis could not be calculated."
+    )
 
 # =========================
 # DATA & METHODOLOGY
