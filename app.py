@@ -7,6 +7,10 @@ st.set_page_config(
     layout="wide"
 )
 
+# =========================
+# TITLE
+# =========================
+
 st.title("📊 Bay Area Economic Observatory")
 
 st.caption(
@@ -26,29 +30,86 @@ with col2:
 with col3:
     st.metric("Data Coverage", "2019–Present")
 
+
+# =========================
+# BART DATA
+# =========================
+
 st.divider()
 
 st.header("🚇 BART Ridership")
 
 st.write(
     """
-    BART ridership is measured by the average weekday exits
+    BART ridership is measured by average weekday exits
     from all BART stations.
     """
 )
 
-# BART data from MTC
 months = [
     "January", "February", "March", "April",
     "May", "June", "July", "August",
     "September", "October", "November", "December"
 ]
 
-transportation_df = pd.read_csv(
-    "data/transportation.csv"
-)
+bart_data = {
+    "Month": months,
+
+    "2019": [
+        395860, 407337, 409515, 414397,
+        412165, 413521, 401465, 410854,
+        426755, 420277, 411183, 376551
+    ],
+
+    "2020": [
+        388910, 404552, 166574, 25136,
+        29878, 40979, 45633, 46020,
+        48838, 53255, 52198, 45893
+    ],
+
+    "2021": [
+        43012, 47665, 51596, 57886,
+        64934, 75963, 85291, 92402,
+        105997, 109781, 112282, 102993
+    ],
+
+    "2022": [
+        85463, 105374, 124094, 132181,
+        135824, 140564, 133858, 144008,
+        161902, 159099, 150242, 130283
+    ],
+
+    "2023": [
+        134140, 151390, 151150, 159696,
+        159918, 158361, 154825, 166637,
+        172051, 171277, 165802, 144070
+    ],
+
+    "2024": [
+        151854, 162186, 162459, 163267,
+        168356, 164743, 159220, 165764,
+        184248, 180834, 166035, 156466
+    ],
+
+    "2025": [
+        162938, 171856, 174538, 181466,
+        170293, 183481, 172984, 186515,
+        189810, 196331, 173574, 159537
+    ],
+
+    "2026": [
+        170543, 178379, 188231, 201256,
+        196692, 206689, None, None,
+        None, None, None, None
+    ]
+}
 
 bart_df = pd.DataFrame(bart_data)
+
+
+# =========================
+# BART GRAPH
+# =========================
 
 st.subheader("Average Weekday BART Station Exits")
 
@@ -60,6 +121,11 @@ st.caption(
     "Source: Metropolitan Transportation Commission (MTC). "
     "Data represents average weekday BART station exits."
 )
+
+
+# =========================
+# BART YEAR COMPARISON
+# =========================
 
 st.divider()
 
@@ -73,8 +139,8 @@ comparison_year = st.selectbox(
 latest_row = bart_df["2026"].last_valid_index()
 latest_month = bart_df.loc[latest_row, "Month"]
 
-latest = bart_df.loc[latest_month, "2026"]
-comparison = bart_df.loc[latest_month, comparison_year]
+latest = bart_df.loc[latest_row, "2026"]
+comparison = bart_df.loc[latest_row, comparison_year]
 
 change = latest - comparison
 percent_change = (change / comparison) * 100
@@ -113,6 +179,11 @@ st.write(
     """
 )
 
+
+# =========================
+# BAY BRIDGE DATA
+# =========================
+
 st.divider()
 
 st.header("🚗 Bay Bridge Traffic")
@@ -124,11 +195,64 @@ st.write(
     """
 )
 
-transportation_df = pd.read_csv(
-    "data/transportation.csv"
-)
+bridge_data = {
+    "Month": months,
+
+    "2019": [
+        3913767, 3587902, 4058925, 3976731,
+        4040558, 4006902, 4063748, 4113916,
+        3948426, 4047327, 3847809, 3882964
+    ],
+
+    "2020": [
+        3878683, 3722539, 2882649, 1996243,
+        2673380, 3036424, 3294706, 3382756,
+        3282056, 3504554, 3192647, 3111694
+    ],
+
+    "2021": [
+        3041330, 2989816, 3532498, 3522492,
+        3671838, 3673837, 3803940, 3737917,
+        3618241, 3700292, 3546027, 3529143
+    ],
+
+    "2022": [
+        3325322, 3286568, 3717879, 3634689,
+        3729564, 3622401, 3739359, 3803975,
+        3649505, 3754261, 3513877, 3513520
+    ],
+
+    "2023": [
+        3383633, 3199618, 3568295, 3649730,
+        3763446, 3673225, 3711557, 3795223,
+        3613710, 3686944, 3399365, 3573283
+    ],
+
+    "2024": [
+        3462422, 3332318, 3650729, 3650435,
+        3706897, 3619233, 3710452, 3754439,
+        3597563, 3705411, 3439752, 3559559
+    ],
+
+    "2025": [
+        3527140, 3239106, 3641671, 3610238,
+        3702144, 3581985, 3687703, 3703249,
+        3547272, 3691034, 3477742, 3551661
+    ],
+
+    "2026": [
+        3493358, 3263952, 3664123, 3510030,
+        3659694, 3585866, None, None,
+        None, None, None, None
+    ]
+}
 
 bridge_df = pd.DataFrame(bridge_data)
+
+
+# =========================
+# BAY BRIDGE GRAPH
+# =========================
 
 st.subheader("Bay Bridge Crossings Over Time")
 
@@ -140,6 +264,11 @@ st.caption(
     "Source: Metropolitan Transportation Commission (MTC). "
     "Measure: one-way toll-direction vehicle crossings."
 )
+
+
+# =========================
+# BART VS BAY BRIDGE
+# =========================
 
 st.divider()
 
