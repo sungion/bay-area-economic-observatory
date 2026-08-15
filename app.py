@@ -596,3 +596,119 @@ st.dataframe(
     use_container_width=True,
     hide_index=True
 )
+
+# =========================
+# DATA & METHODOLOGY
+# =========================
+
+st.divider()
+
+st.header("📚 Data & Methodology")
+
+st.write(
+    """
+    The Bay Area Economic Observatory combines publicly available
+    transportation and economic data to examine relationships between
+    transportation, income, commuting, and regional differences.
+    """
+)
+
+st.subheader("Geographic Scope")
+
+st.write(
+    """
+    The Bay Area is defined as the nine-county region consisting of
+    Alameda, Contra Costa, Marin, Napa, San Francisco, San Mateo,
+    Santa Clara, Solano, and Sonoma counties.
+    """
+)
+
+st.subheader("Transportation Data")
+
+st.markdown(
+    """
+    **BART Ridership**
+
+    - Measure: Average weekday station exits
+    - Geographic scope: BART system
+    - Years displayed: 2019–2026
+    - Source: Metropolitan Transportation Commission (MTC)
+
+    **Bay Bridge Traffic**
+
+    - Measure: One-way toll-direction vehicle crossings
+    - Geographic scope: San Francisco–Oakland Bay Bridge
+    - Years displayed: 2019–2026
+    - Source: Metropolitan Transportation Commission (MTC)
+    """
+)
+
+st.subheader("Economic Data")
+
+st.markdown(
+    """
+    **Median Household Income**
+
+    - Measure: Median household income
+    - Geography: Nine Bay Area counties
+    - Year: 2024
+    - Source: U.S. Census Bureau, American Community Survey (ACS)
+    - Table: B19013
+
+    **Mean Commute Time**
+
+    - Measure: Mean travel time to work
+    - Geography: Nine Bay Area counties
+    - Year: 2024
+    - Source: U.S. Census Bureau, American Community Survey (ACS)
+    - Data Profile: DP03
+    """
+)
+
+st.subheader("Analytical Methods")
+
+st.markdown(
+    """
+    **Recovery percentage**
+
+    Recovery is calculated as:
+
+    `Current value ÷ comparison-year value × 100`
+
+    A value of 100% indicates that the current value equals the
+    comparison-year value.
+
+    **Percentage change**
+
+    Percentage change is calculated as:
+
+    `((Current value − comparison value) ÷ comparison value) × 100`
+
+    **Correlation**
+
+    Pearson correlation is used to measure the linear association
+    between selected county-level variables.
+
+    Correlation does not imply causation.
+    """
+)
+
+st.subheader("Limitations")
+
+st.markdown(
+    """
+    - Different datasets may cover different years.
+    - Transportation measures are not necessarily directly comparable
+      across systems.
+    - County-level statistics can conceal differences within counties.
+    - Correlation analysis does not establish causal relationships.
+    - Mean commute time measures travel to work and does not represent
+      every transportation trip.
+    """
+)
+
+st.info(
+    "This observatory is an independent student research project using "
+    "publicly available data. Data definitions and methodologies are "
+    "documented to improve transparency and reproducibility."
+)
