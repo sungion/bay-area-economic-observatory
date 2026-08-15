@@ -98,7 +98,7 @@ def get_transportation_mode_data():
     url = (
         "https://api.census.gov/data/2024/acs/acs5"
         "?get=NAME,B08301_001E,B08301_003E,B08301_004E,"
-        "B08301_010E,B08301_018E"
+        "B08301_008E,B08301_018E"
         "&for=county:*"
         "&in=state:06"
         f"&key={key}"
@@ -120,37 +120,31 @@ def get_transportation_mode_data():
 
     df["County"] = df["county"].map(fips_to_county)
 
-    # Total workers
     df["Total Workers"] = pd.to_numeric(
         df["B08301_001E"],
         errors="coerce"
     )
 
-    # Drive alone
     df["Drive Alone"] = pd.to_numeric(
         df["B08301_003E"],
         errors="coerce"
     )
 
-    # Carpooled
     df["Carpooled"] = pd.to_numeric(
         df["B08301_004E"],
         errors="coerce"
     )
 
-    # Public transportation
     df["Public Transportation"] = pd.to_numeric(
-        df["B08301_010E"],
+        df["B08301_008E"],
         errors="coerce"
     )
 
-    # Worked at home
     df["Worked at Home"] = pd.to_numeric(
         df["B08301_018E"],
         errors="coerce"
     )
 
-    # Convert counts to percentages
     df["Drive Alone (%)"] = (
         df["Drive Alone"] / df["Total Workers"] * 100
     )
