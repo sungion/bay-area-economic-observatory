@@ -276,35 +276,46 @@ st.header("🚇 vs. 🚗 Transportation Recovery")
 
 st.write(
     """
-    How has public transit recovery compared with automobile traffic
-    since the COVID-19 pandemic?
+    Compare how public transit and automobile traffic have recovered
+    relative to the same month in a previous year.
     """
 )
 
-comparison_month = st.selectbox(
-    "Choose a month:",
-    bridge_df["Month"],
-    index=5
+comparison_year = st.selectbox(
+    "Choose a comparison year:",
+    ["2019", "2020", "2021", "2022", "2023", "2024", "2025"],
+    index=0
 )
 
-bart_value = bart_df.loc[
-    bart_df["Month"] == comparison_month, "2026"
+# 2026 data currently extends through June
+latest_row = bart_df["2026"].last_valid_index()
+latest_month = bart_df.loc[latest_row, "Month"]
+
+# Get BART values
+bart_2026 = bart_df.loc[
+    bart_df["Month"] == latest_month, "2026"
 ].iloc[0]
 
-bart_2019 = bart_df.loc[
-    bart_df["Month"] == comparison_month, "2019"
+bart_comparison = bart_df.loc[
+    bart_df["Month"] == latest_month, comparison_year
 ].iloc[0]
 
-bridge_value = bridge_df.loc[
-    bridge_df["Month"] == comparison_month, "2026"
+# Get Bay Bridge values
+bridge_2026 = bridge_df.loc[
+    bridge_df["Month"] == latest_month, "2026"
 ].iloc[0]
 
-bridge_2019 = bridge_df.loc[
-    bridge_df["Month"] == comparison_month, "2019"
+bridge_comparison = bridge_df.loc[
+    bridge_df["Month"] == latest_month, comparison_year
 ].iloc[0]
 
-bart_recovery = (bart_value / bart_2019) * 100
-bridge_recovery = (bridge_value / bridge_2019) * 100
+# Calculate recovery percentages
+bart_recovery = (bart_2026 / bart_comparison) * 100
+bridge_recovery = (bridge_2026 / bridge_comparison) * 100
+
+# Calculate percentage changes
+bart_change = bart_recovery - 100
+bridge_change = bridge_recovery - 100
 
 col1, col2 = st.columns(2)
 
@@ -312,21 +323,28 @@ with col1:
     st.metric(
         "🚇 BART Recovery",
         f"{bart_recovery:.1f}%",
-        f"{bart_recovery - 100:+.1f}% vs. 2019"
+        f"{bart_change:+.1f}% vs. {comparison_year}"
     )
 
 with col2:
     st.metric(
         "🚗 Bay Bridge Recovery",
         f"{bridge_recovery:.1f}%",
-        f"{bridge_recovery - 100:+.1f}% vs. 2019"
+        f"{bridge_change:+.1f}% vs. {comparison_year}"
     )
 
 st.write(
     f"""
-    For **{comparison_month} 2026**, BART ridership was
-    **{bart_recovery:.1f}%** of its {comparison_month} 2019 level,
-    while Bay Bridge traffic was **{bridge_recovery:.1f}%** of its
-    {comparison_month} 2019 level.
+    In **{latest_month} 2026**, BART average weekday station exits
+    were **{bart_recovery:.1f}%** of the {comparison_year}
+    level for the same month.
+
+    Bay Bridge traffic was **{bridge_recovery:.1f}%** of its
+    {comparison_year} level for the same month.
     """
+)
+
+st.caption(
+    f"Comparison uses {latest_month} because it is the latest month "
+    "currently available in the 2026 dataset."
 )
