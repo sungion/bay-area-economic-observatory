@@ -349,3 +349,42 @@ st.caption(
     f"Comparison uses {latest_month} because it is the latest month "
     "currently available in the 2026 dataset."
 )
+
+# =========================
+# BAY AREA ECONOMIC INDICATORS
+# =========================
+
+st.divider()
+
+st.header("💰 Bay Area Economic Indicators")
+
+st.write(
+    """
+    Economic indicators provide context for understanding transportation
+    patterns across the Bay Area.
+    """
+)
+
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    st.metric(
+        "Median Household Income",
+        "Coming Soon"
+    )
+
+with col2:
+    st.metric(
+        "Employment",
+        "Coming Soon"
+    )
+
+with col3:
+    st.metric(
+        "Unemployment Rate",
+        "Coming Soon"
+    )
+
+st.info(
+    "Official economic data will be integrated from public government sources."
+)
