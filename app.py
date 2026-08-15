@@ -543,3 +543,56 @@ except Exception as e:
     st.error(
         "The Census commute data could not be loaded."
     )
+
+# =========================
+# INCOME VS. COMMUTE TIME
+# =========================
+
+st.divider()
+
+st.header("📈 Income vs. Commute Time")
+
+st.write(
+    """
+    This analysis examines whether median household income is associated
+    with average commute time across the nine Bay Area counties.
+    Each point represents one county.
+    """
+)
+
+# Merge income and commute datasets
+analysis_df = pd.merge(
+    income_df[["County", "Median Household Income"]],
+    commute_df[["County", "Mean Commute Time"]],
+    on="County"
+)
+
+st.subheader("County-Level Relationship")
+
+st.scatter_chart(
+    analysis_df,
+    x="Median Household Income",
+    y="Mean Commute Time"
+)
+
+# Calculate correlation
+correlation = analysis_df[
+    ["Median Household Income", "Mean Commute Time"]
+].corr().iloc[0, 1]
+
+st.metric(
+    "Income–Commute Correlation",
+    f"{correlation:.2f}"
+)
+
+st.caption(
+    "Correlation measures the linear association between median household "
+    "income and mean commute time across the nine Bay Area counties. "
+    "Correlation does not imply causation."
+)
+
+st.dataframe(
+    analysis_df,
+    use_container_width=True,
+    hide_index=True
+)
