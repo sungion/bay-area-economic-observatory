@@ -110,10 +110,10 @@ comparison_year = st.selectbox(
     ["2019", "2020", "2021", "2022", "2023", "2024", "2025"]
 )
 
-latest_month_index = bart_df["2026"].last_valid_index()
+latest_row = bart_df["2026"].last_valid_index() latest_month = bart_df.loc[latest_row, "Month"]
 
-latest = bart_df.loc[latest_month_index, "2026"]
-comparison = bart_df.loc[latest_month_index, comparison_year]
+latest = bart_df.loc[latest_month, "2026"]
+comparison = bart_df.loc[latest_month, comparison_year]
 
 change = latest - comparison
 percent_change = (change / comparison) * 100
@@ -141,7 +141,7 @@ with col3:
 
 st.write(
     f"""
-    In **{latest_month_index} 2026**, average weekday BART station
+    In **{latest_month} 2026**, average weekday BART station
     exits were **{latest:,.0f}**.
 
     In the same month of **{comparison_year}**, there were
@@ -149,5 +149,138 @@ st.write(
 
     This represents a **{percent_change:+.1f}%** change relative to
     {comparison_year}.
+    """
+)
+
+st.divider()
+
+st.header("🚗 Bay Bridge Traffic")
+
+st.write(
+    """
+    The San Francisco–Oakland Bay Bridge data measures one-way
+    toll-direction vehicle crossings.
+    """
+)
+
+bridge_data = {
+    "Month": [
+        "January", "February", "March", "April",
+        "May", "June", "July", "August",
+        "September", "October", "November", "December"
+    ],
+    "2019": [
+        3913767, 3587902, 4058925, 3976731,
+        4040558, 4006902, 4063748, 4113916,
+        3948426, 4047327, 3847809, 3882964
+    ],
+    "2020": [
+        3878683, 3722539, 2882649, 1996243,
+        2673380, 3036424, 3294706, 3382756,
+        3282056, 3504554, 3192647, 3111694
+    ],
+    "2021": [
+        3041330, 2989816, 3532498, 3522492,
+        3671838, 3673837, 3803940, 3737917,
+        3618241, 3700292, 3546027, 3529143
+    ],
+    "2022": [
+        3325322, 3286568, 3717879, 3634689,
+        3729564, 3622401, 3739359, 3803975,
+        3649505, 3754261, 3513877, 3513520
+    ],
+    "2023": [
+        3383633, 3199618, 3568295, 3649730,
+        3763446, 3673225, 3711557, 3795223,
+        3613710, 3686944, 3399365, 3573283
+    ],
+    "2024": [
+        3462422, 3332318, 3650729, 3650435,
+        3706897, 3619233, 3710452, 3754439,
+        3597563, 3705411, 3439752, 3559559
+    ],
+    "2025": [
+        3527140, 3239106, 3641671, 3610238,
+        3702144, 3581985, 3687703, 3703249,
+        3547272, 3691034, 3477742, 3551661
+    ],
+    "2026": [
+        3493358, 3263952, 3664123, 3510030,
+        3659694, 3585866, None, None,
+        None, None, None, None
+    ]
+}
+
+bridge_df = pd.DataFrame(bridge_data)
+
+st.subheader("Bay Bridge Crossings Over Time")
+
+st.line_chart(
+    bridge_df.set_index("Month")
+)
+
+st.caption(
+    "Source: Metropolitan Transportation Commission (MTC). "
+    "Measure: one-way toll-direction vehicle crossings."
+)
+
+st.divider()
+
+st.header("🚇 vs. 🚗 Transportation Recovery")
+
+st.write(
+    """
+    How has public transit recovery compared with automobile traffic
+    since the COVID-19 pandemic?
+    """
+)
+
+comparison_month = st.selectbox(
+    "Choose a month:",
+    bridge_df["Month"],
+    index=5
+)
+
+bart_value = bart_df.loc[
+    bart_df["Month"] == comparison_month, "2026"
+].iloc[0]
+
+bart_2019 = bart_df.loc[
+    bart_df["Month"] == comparison_month, "2019"
+].iloc[0]
+
+bridge_value = bridge_df.loc[
+    bridge_df["Month"] == comparison_month, "2026"
+].iloc[0]
+
+bridge_2019 = bridge_df.loc[
+    bridge_df["Month"] == comparison_month, "2019"
+].iloc[0]
+
+bart_recovery = (bart_value / bart_2019) * 100
+bridge_recovery = (bridge_value / bridge_2019) * 100
+
+col1, col2 = st.columns(2)
+
+with col1:
+    st.metric(
+        "🚇 BART Recovery",
+        f"{bart_recovery:.1f}%",
+        f"{bart_recovery - 100:+.1f}% vs. 2019"
+    )
+
+with col2:
+    st.metric(
+        "🚗 Bay Bridge Recovery",
+        f"{bridge_recovery:.1f}%",
+        f"{bridge_recovery - 100:+.1f}% vs. 2019"
+    )
+
+st.write(
+    f"""
+    For **{comparison_month} 2026**, BART ridership was
+    **{bart_recovery:.1f}%** of its {comparison_month} 2019 level,
+    while Bay Bridge traffic was **{bridge_recovery:.1f}%** of its
+    {comparison_month} 2019 level.
     """
 )
