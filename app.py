@@ -360,31 +360,106 @@ st.header("💰 Bay Area Economic Indicators")
 
 st.write(
     """
-    Economic indicators provide context for understanding transportation
-    patterns across the Bay Area.
+    Median household income provides economic context for
+    transportation patterns across the Bay Area's nine counties.
+    Data is retrieved directly from the U.S. Census Bureau's
+    American Community Survey.
     """
 )
 
-col1, col2, col3 = st.columns(3)
+# 9-county Bay Area FIPS codes
+counties = {
+    "Alameda": "001",
+    "Contra Costa": "013",
+    "Marin": "041",
+    "Napa": "055",
+    "San Francisco": "075",
+    "San Mateo": "081",
+    "Santa Clara": "085",
+    "Solano": "095",
+    "Sonoma": "097"
+}
 
-with col1:
-    st.metric(
-        "Median Household Income",
-        "Coming Soon"
-    )
+# Census API key stored securely in Streamlit Secrets
+census_key = st.secrets["CENSUS_API_KEY"]
 
-with col2:
-    st.metric(
-        "Employment",
-        "Coming Soon"
-    )
-
-with col3:
-    st.metric(
-        "Unemployment Rate",
-        "Coming Soon"
-    )
-
-st.info(
-    "Official economic data will be integrated from public government sources."
+# Census API URL
+url = (
+    "https://api.census.gov/data/2024/acs/acs5"
+    "?get=NAME,B19013_001E"
+    "&for=county:*"
+    "&in=state:06"
+    f"&key={census_key}"
 )
+
+try:
+    census_response = pd.read_json(url)
+
+    # First row contains column names
+    census_response.columns = census_response.iloc[0]
+    census_response = census_response.iloc[1:].reset_index(drop=True)
+
+    # Keep only the nine Bay Area counties
+    income_df = census_response[
+        census_response["county"].isin(counties.values())
+    ].copy()
+
+    # Map FIPS codes to county names
+    fips_to_county = {
+        value: key for key, value in counties.items()
+    }
+
+    income_df["County"] = income_df["county"].map(fips_to_county)
+
+    # Convert income to numbers
+    income_df["Median Household Income"] = pd.to_numeric(
+        income_df["B19013_001E"],
+        errors="coerce"
+    )
+
+    # Sort alphabetically
+    income_df = income_df.sort_values("County")
+
+    # -------------------------
+    # Chart
+    # -------------------------
+
+    st.subheader("Median Household Income by County")
+
+    chart_data = income_df.set_index("County")[
+        ["Median Household Income"]
+    ]
+
+    st.bar_chart(chart_data)
+
+    # -------------------------
+    # County selector
+    # -------------------------
+
+    selected_county = st.selectbox(
+        "Select a county:",
+        income_df["County"].tolist(),
+        key="income_county"
+    )
+
+    selected_income = income_df.loc[
+        income_df["County"] == selected_county,
+        "Median Household Income"
+    ].iloc[0]
+
+    st.metric(
+        f"{selected_county} County Median Household Income",
+        f"${selected_income:,.0f}"
+    )
+
+    st.caption(
+        "Source: U.S. Census Bureau, 2024 American Community Survey "
+        "(ACS 5-Year Estimates), Table B19013."
+    )
+
+except Exception as e:
+    st.error(
+        "The Census data could not be loaded. "
+        "Check that your Census API key is configured correctly "
+        "in Streamlit Secrets."
+    )
