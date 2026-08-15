@@ -96,9 +96,9 @@ def get_transportation_mode_data():
     key = get_census_key()
 
     url = (
-        "https://api.census.gov/data/2024/acs/acs5/profile"
-        "?get=NAME,DP03_0021PE,DP03_0022PE,DP03_0023PE,"
-        "DP03_0024PE,DP03_0025PE"
+        "https://api.census.gov/data/2024/acs/acs5"
+        "?get=NAME,B08301_001E,B08301_003E,B08301_004E,"
+        "B08301_010E,B08301_018E"
         "&for=county:*"
         "&in=state:06"
         f"&key={key}"
@@ -120,38 +120,63 @@ def get_transportation_mode_data():
 
     df["County"] = df["county"].map(fips_to_county)
 
-    df["Car, truck, or van — drove alone"] = pd.to_numeric(
-        df["DP03_0021PE"],
+    # Total workers
+    df["Total Workers"] = pd.to_numeric(
+        df["B08301_001E"],
         errors="coerce"
     )
 
-    df["Car, truck, or van — carpooled"] = pd.to_numeric(
-        df["DP03_0022PE"],
+    # Drive alone
+    df["Drive Alone"] = pd.to_numeric(
+        df["B08301_003E"],
         errors="coerce"
     )
 
-    df["Public transportation"] = pd.to_numeric(
-        df["DP03_0023PE"],
+    # Carpooled
+    df["Carpooled"] = pd.to_numeric(
+        df["B08301_004E"],
         errors="coerce"
     )
 
-    df["Walked"] = pd.to_numeric(
-        df["DP03_0024PE"],
+    # Public transportation
+    df["Public Transportation"] = pd.to_numeric(
+        df["B08301_010E"],
         errors="coerce"
     )
 
-    df["Other transportation"] = pd.to_numeric(
-        df["DP03_0025PE"],
+    # Worked at home
+    df["Worked at Home"] = pd.to_numeric(
+        df["B08301_018E"],
         errors="coerce"
+    )
+
+    # Convert counts to percentages
+    df["Drive Alone (%)"] = (
+        df["Drive Alone"] / df["Total Workers"] * 100
+    )
+
+    df["Carpooled (%)"] = (
+        df["Carpooled"] / df["Total Workers"] * 100
+    )
+
+    df["Public Transportation (%)"] = (
+        df["Public Transportation"]
+        / df["Total Workers"]
+        * 100
+    )
+
+    df["Worked at Home (%)"] = (
+        df["Worked at Home"]
+        / df["Total Workers"]
+        * 100
     )
 
     return df[
         [
             "County",
-            "Car, truck, or van — drove alone",
-            "Car, truck, or van — carpooled",
-            "Public transportation",
-            "Walked",
-            "Other transportation"
+            "Drive Alone (%)",
+            "Carpooled (%)",
+            "Public Transportation (%)",
+            "Worked at Home (%)"
         ]
     ].sort_values("County")
