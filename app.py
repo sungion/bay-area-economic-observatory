@@ -103,15 +103,47 @@ st.caption(
 
 st.divider()
 
-st.subheader("Latest Available Data")
+st.subheader("📊 BART Recovery Compared With 2019")
 
-latest = bart_df["2026"].dropna().iloc[-1]
+# Latest available month
+latest_month_index = bart_df["2026"].last_valid_index()
 
-st.metric(
-    "June 2026 Average Weekday Exits",
-    f"{latest:,.0f}"
-)
+latest = bart_df.loc[latest_month_index, "2026"]
+baseline = bart_df.loc[latest_month_index, "2019"]
+
+change = latest - baseline
+percent_change = (change / baseline) * 100
+recovery = (latest / baseline) * 100
+
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    st.metric(
+        "Latest Ridership",
+        f"{latest:,.0f}"
+    )
+
+with col2:
+    st.metric(
+        "Change vs. 2019",
+        f"{percent_change:.1f}%"
+    )
+
+with col3:
+    st.metric(
+        "2019 Level Reached",
+        f"{recovery:.1f}%"
+    )
 
 st.write(
-    "MTC's latest available monthly data currently extends through June 2026."
+    f"""
+    In **{latest_month_index}**, average weekday BART station exits
+    were **{latest:,.0f}**.
+
+    The same month in 2019 had **{baseline:,.0f}** average weekday
+    station exits.
+
+    This means current ridership is **{recovery:.1f}%** of the
+    comparable 2019 level.
+    """
 )
